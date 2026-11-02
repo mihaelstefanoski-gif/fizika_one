@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Energy Calculator</title>
+    <style>
+        :root {
+            --bg-color: #00206b;
+            --card-bg: #002560;
+            --input-bg: #0f172a;
+            --border-color: #44628b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-primary: #00a7ef;
+            --accent-hover: #0284c7;
+            --accent-glow: rgba(56, 189, 248, 0.15);
+            --card-radius: 12px;
+            --transition-speed: 0.2s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--card-radius);
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: border-color var(--transition-speed);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .calculator-section {
+            display: none;
+            background-color: rgba(15, 23, 42, 0.4);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .calculator-section.active {
+            display: block;
+        }
+
+        .row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .row .form-group {
+            flex: 1;
+        }
+
+        button.calc-btn {
+            width: 100%;
+            padding: 0.85rem;
+            background-color: var(--accent-primary);
+            color: #0f172a;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color var(--transition-speed);
+        }
+
+        button.calc-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Results Display */
+        .result-container {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            background-color: var(--input-bg);
+            border-left: 4px solid var(--accent-primary);
+            border-radius: 6px;
+        }
+
+        .result-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .main-result {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+        }
+
+        .conversions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .conversion-item {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .conversion-item span {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .formula-breakdown {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: monospace;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 480px) {
+            .row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .conversions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>⚡ Energy Calculator</h1>
+        <p>Select an energy type, enter your variables, and calculate.</p>
+    </header>
+
+    <div class="form-group">
+        <label for="energyType">Select Energy Type</label>
+        <select id="energyType" onchange="switchEnergyType()">
+            <option value="kinetic">1. Kinetic Energy (KE)</option>
+            <option value="gravitational">2. Gravitational Potential Energy (PE)</option>
+            <option value="elastic">3. Elastic Potential Energy (EE)</option>
+            <option value="thermal">4. Thermal Energy / Heat (Q)</option>
+            <option value="electrical">5. Electrical Energy (E)</option>
+        </select>
+    </div>
+    <div id="section-kinetic" class="calculator-section active">
+        <div class="form-group">
+            <label for="ke-mass">Mass ($m$) [kg]</label>
+            <input type="number" id="ke-mass" placeholder="e.g. 1000" step="any">
+        </div>
+        <div class="form-group">
+            <label for="ke-velocity">Velocity ($v$) [m/s]</label>
+            <input type="number" id="ke-velocity" placeholder="e.g. 20" step="any">
+        </div>
+    </div>
+
+    <div id="section-gravitational" class="calculator-section">
+        <div class="form-group">
+            <label for="pe-mass">Mass ($m$) [kg]</label>
+            <input type="number" id="pe-mass" placeholder="e.g. 50" step="any">
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label for="pe-gravity">Gravity Acceleration ($g$) [m/s²]</label>
+                <input type="number" id="pe-gravity" value="9.81" step="any">
+            </div>
+            <div class="form-group">
+                <label for="pe-preset">Preset Gravity</label>
+                <select id="pe-preset" onchange="setGravityPreset()">
+                    <option value="9.81">Earth (9.81 m/s²)</option>
+                    <option value="1.62">Moon (1.62 m/s²)</option>
+                    <option value="3.71">Mars (3.71 m/s²)</option>
+                    <option value="24.79">Jupiter (24.79 m/s²)</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="pe-height">Height ($h$) [m]</label>
+            <input type="number" id="pe-height" placeholder="e.g. 10" step="any">
+        </div>
+    </div>
+
+    <div id="section-elastic" class="calculator-section">
+        <div class="form-group">
+            <label for="ee-spring">Spring Constant ($k$) [N/m]</label>
+            <input type="number" id="ee-spring" placeholder="e.g. 500" step="any">
+        </div>
+        <div class="form-group">
+            <label for="ee-displacement">Displacement / Stretch ($x$) [m]</label>
+            <input type="number" id="ee-displacement" placeholder="e.g. 0.2" step="any">
+        </div>
+    </div>
+
+    <div id="section-thermal" class="calculator-section">
+        <div class="form-group">
+            <label for="th-mass">Mass ($m$) [kg]</label>
+            <input type="number" id="th-mass" placeholder="e.g. 2" step="any">
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label for="th-heat">Specific Heat Capacity ($c$) [J/(kg·°C)]</label>
+                <input type="number" id="th-heat" value="4184" step="any">
+            </div>
+            <div class="form-group">
+                <label for="th-preset">Material Preset</label>
+                <select id="th-preset" onchange="setHeatPreset()">
+                    <option value="4184">Water (4184)</option>
+                    <option value="900">Aluminum (900)</option>
+                    <option value="385">Copper (385)</option>
+                    <option value="450">Iron (450)</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="th-temp">Temperature Change ($\Delta T$) [°C or K]</label>
+            <input type="number" id="th-temp" placeholder="e.g. 25" step="any">
+        </div>
+    </div>
+    <div id="section-electrical" class="calculator-section">
+        <div class="form-group">
+            <label for="el-mode">Input Method</label>
+            <select id="el-mode" onchange="toggleElectricalInputs()">
+                <option value="power">Power ($P$) + Time ($t$)</option>
+                <option value="voltage">Voltage ($V$) + Current ($I$) + Time ($t$)</option>
+            </select>
+        </div>
+
+        <div id="el-power-group" class="form-group">
+            <label for="el-power">Power ($P$) [Watts]</label>
+            <input type="number" id="el-power" placeholder="e.g. 100" step="any">
+        </div>
+
+        <div id="el-voltage-group" class="row" style="display: none;">
+            <div class="form-group">
+                <label for="el-voltage">Voltage ($V$) [Volts]</label>
+                <input type="number" id="el-voltage" placeholder="e.g. 230" step="any">
+            </div>
+            <div class="form-group">
+                <label for="el-current">Current ($I$) [Amperes]</label>
+                <input type="number" id="el-current" placeholder="e.g. 5" step="any">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label for="el-time">Time</label>
+                <input type="number" id="el-time" placeholder="e.g. 60" step="any">
+            </div>
+            <div class="form-group">
+                <label for="el-unit">Time Unit</label>
+                <select id="el-unit">
+                    <option value="1">Seconds (s)</option>
+                    <option value="60">Minutes (min)</option>
+                    <option value="3600">Hours (hr)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculateEnergy()">Calculate Result</button>
+
+    <div class="result-container" id="resultContainer">
+        <div class="result-title">Calculated Energy</div>
+        <div class="main-result" id="mainResult">0.00 J</div>
+
+        <div class="conversions-grid">
+            <div class="conversion-item">Kilojoules: <span id="kJResult">0 kJ</span></div>
+            <div class="conversion-item">Megajoules: <span id="MJResult">0 MJ</span></div>
+            <div class="conversion-item">Watt-hours: <span id="whResult">0 Wh</span></div>
+            <div class="conversion-item">Calories: <span id="calResult">0 cal</span></div>
+        </div>
+
+        <div class="formula-breakdown" id="formulaBreakdown">
+            Select an energy type and enter values to calculate.
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchEnergyType() {
+        const type = document.getElementById('energyType').value;
+        const sections = document.querySelectorAll('.calculator-section');
+        
+        sections.forEach(section => section.classList.remove('active'));
+        document.getElementById(`section-${type}`).classList.add('active');
+    }
+
+    function setGravityPreset() {
+        document.getElementById('pe-gravity').value = document.getElementById('pe-preset').value;
+    }
+
+    function setHeatPreset() {
+        document.getElementById('th-heat').value = document.getElementById('th-preset').value;
+    }
+
+    function toggleElectricalInputs() {
+        const mode = document.getElementById('el-mode').value;
+        const powerGroup = document.getElementById('el-power-group');
+        const voltageGroup = document.getElementById('el-voltage-group');
+
+        if (mode === 'power') {
+            powerGroup.style.display = 'block';
+            voltageGroup.style.display = 'none';
+        } else {
+            powerGroup.style.display = 'none';
+            voltageGroup.style.display = 'flex';
+        }
+    }
+
+    function calculateEnergy() {
+        const type = document.getElementById('energyType').value;
+        let joules = 0;
+        let formulaText = "";
+
+        if (type === 'kinetic') {
+            const m = parseFloat(document.getElementById('ke-mass').value);
+            const v = parseFloat(document.getElementById('ke-velocity').value);
+
+            if (isNaN(m) || isNaN(v)) return showError();
+
+            joules = 0.5 * m * (v ** 2);
+            formulaText = `KE = ½ × m × v²\nKE = 0.5 × ${m} kg × (${v} m/s)²`;
+
+        } else if (type === 'gravitational') {
+            const m = parseFloat(document.getElementById('pe-mass').value);
+            const g = parseFloat(document.getElementById('pe-gravity').value);
+            const h = parseFloat(document.getElementById('pe-height').value);
+
+            if (isNaN(m) || isNaN(g) || isNaN(h)) return showError();
+
+            joules = m * g * h;
+            formulaText = `PE = m × g × h\nPE = ${m} kg × ${g} m/s² × ${h} m`;
+
+        } else if (type === 'elastic') {
+            const k = parseFloat(document.getElementById('ee-spring').value);
+            const x = parseFloat(document.getElementById('ee-displacement').value);
+
+            if (isNaN(k) || isNaN(x)) return showError();
+
+            joules = 0.5 * k * (x ** 2);
+            formulaText = `EE = ½ × k × x²\nEE = 0.5 × ${k} N/m × (${x} m)²`;
+
+        } else if (type === 'thermal') {
+            const m = parseFloat(document.getElementById('th-mass').value);
+            const c = parseFloat(document.getElementById('th-heat').value);
+            const dt = parseFloat(document.getElementById('th-temp').value);
+
+            if (isNaN(m) || isNaN(c) || isNaN(dt)) return showError();
+
+            joules = m * c * dt;
+            formulaText = `Q = m × c × ΔT\nQ = ${m} kg × ${c} J/(kg·°C) × ${dt} °C`;
+
+        } else if (type === 'electrical') {
+            const mode = document.getElementById('el-mode').value;
+            const timeRaw = parseFloat(document.getElementById('el-time').value);
+            const multiplier = parseFloat(document.getElementById('el-unit').value);
+
+            if (isNaN(timeRaw)) return showError();
+            const timeInSeconds = timeRaw * multiplier;
+
+            if (mode === 'power') {
+                const p = parseFloat(document.getElementById('el-power').value);
+                if (isNaN(p)) return showError();
+
+                joules = p * timeInSeconds;
+                formulaText = `E = P × t\nE = ${p} W × ${timeInSeconds} s`;
+            } else {
+                const v = parseFloat(document.getElementById('el-voltage').value);
+                const i = parseFloat(document.getElementById('el-current').value);
+                if (isNaN(v) || isNaN(i)) return showError();
+
+                joules = v * i * timeInSeconds;
+                formulaText = `E = V × I × t\nE = ${v} V × ${i} A × ${timeInSeconds} s`;
+            }
+        }
+
+        displayResults(joules, formulaText);
+    }
+
+    function displayResults(joules, formulaText) {
+        document.getElementById('mainResult').innerText = formatNumber(joules) + " J";
+        document.getElementById('kJResult').innerText = formatNumber(joules / 1000) + " kJ";
+        document.getElementById('MJResult').innerText = formatNumber(joules / 1000000) + " MJ";
+        document.getElementById('whResult').innerText = formatNumber(joules / 3600) + " Wh";
+        document.getElementById('calResult').innerText = formatNumber(joules / 4.184) + " cal";
+        document.getElementById('formulaBreakdown').innerText = formulaText;
+    }
+
+    function showError() {
+        alert("Please fill in all input fields with valid numerical values.");
+    }
+
+    function formatNumber(num) {
+        if (Math.abs(num) >= 1e6 || (Math.abs(num) < 0.001 && num !== 0)) {
+            return num.toExponential(4);
+        }
+        return num.toLocaleString(undefined, { maximumFractionDigits: 4 });
+    }
+</script>
+
+</body>
+</html>
